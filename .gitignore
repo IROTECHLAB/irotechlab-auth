@@ -1,0 +1,8 @@
+node_modules/
+.next/
+.netlify/
+.env
+.env.local
+*.log
+.DS_Store
+irotechlab-auth.zip

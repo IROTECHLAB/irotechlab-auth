@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /$
+Allow: /login
+Allow: /signup
+Disallow: /account
+Disallow: /developer
+Disallow: /oauth
+Disallow: /api
+Disallow: /.well-known/openid-configuration

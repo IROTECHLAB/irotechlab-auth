@@ -1,0 +1,74 @@
+{
+  "info": {
+    "name": "IrotechLab Auth",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base", "value": "http://localhost:3000" },
+    { "key": "client_id", "value": "iro_demo_client" },
+    { "key": "client_secret", "value": "iro_sk_live_replace_me" },
+    { "key": "redirect_uri", "value": "http://localhost:3000/callback" },
+    { "key": "verifier", "value": "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG" },
+    { "key": "code", "value": "" },
+    { "key": "access_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "OIDC Discovery",
+      "request": { "method": "GET", "url": "{{base}}/.well-known/openid-configuration" }
+    },
+    {
+      "name": "JWKS",
+      "request": { "method": "GET", "url": "{{base}}/.well-known/jwks.json" }
+    },
+    {
+      "name": "Authorize (open in browser)",
+      "request": {
+        "method": "GET",
+        "url": "{{base}}/api/oauth/authorize?client_id={{client_id}}&redirect_uri={{redirect_uri}}&response_type=code&scope=openid profile email&state=xyz&code_challenge=REPLACE_WITH_S256&code_challenge_method=S256"
+      }
+    },
+    {
+      "name": "Exchange code for tokens",
+      "request": {
+        "method": "POST",
+        "url": "{{base}}/api/oauth/token",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "authorization_code" },
+            { "key": "code", "value": "{{code}}" },
+            { "key": "redirect_uri", "value": "{{redirect_uri}}" },
+            { "key": "client_id", "value": "{{client_id}}" },
+            { "key": "client_secret", "value": "{{client_secret}}" },
+            { "key": "code_verifier", "value": "{{verifier}}" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "UserInfo",
+      "request": {
+        "method": "GET",
+        "url": "{{base}}/api/oauth/userinfo",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+      }
+    },
+    {
+      "name": "Refresh token",
+      "request": {
+        "method": "POST",
+        "url": "{{base}}/api/oauth/token",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "refresh_token" },
+            { "key": "refresh_token", "value": "REPLACE" },
+            { "key": "client_id", "value": "{{client_id}}" },
+            { "key": "client_secret", "value": "{{client_secret}}" }
+          ]
+        }
+      }
+    }
+  ]
+}

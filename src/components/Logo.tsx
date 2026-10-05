@@ -1,0 +1,26 @@
+interface Props {
+  size?: number;
+  className?: string;
+}
+
+export function Logo({ size = 32, className = '' }: Props) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      aria-label="IrotechLab Auth"
+      className={className}
+      style={{ display: 'inline-block', verticalAlign: 'middle' }}
+    >
+      <g fill="none" stroke="currentColor" strokeWidth={6} strokeLinejoin="round" strokeLinecap="round">
+        <circle cx="50" cy="18" r="8" fill="currentColor" stroke="none" />
+        <path d="M 25 30 L 75 30 L 75 55 Q 75 75 50 88 Q 25 75 25 55 Z" />
+        <circle cx="50" cy="52" r="5" fill="currentColor" stroke="none" />
+        <rect x="47.4" y="55" width="5" height="11" rx="2.5" fill="currentColor" stroke="none" />
+      </g>
+    </svg>
+  );
+}

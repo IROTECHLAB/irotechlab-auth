@@ -1,0 +1,346 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   Theme tokens
+   ============================================ */
+:root {
+  --bg: 250 250 250;          /* page background */
+  --surface: 255 255 255;     /* cards, header */
+  --surface-2: 244 244 245;   /* subtle fills, hover */
+  --border: 229 229 229;
+  --fg: 17 24 39;
+  --fg-muted: 107 114 128;
+  --fg-subtle: 156 163 175;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: 9 9 11;               /* near-black page */
+  --surface: 24 24 27;        /* dark card */
+  --surface-2: 39 39 42;      /* dark subtle fill */
+  --border: 63 63 70;
+  --fg: 244 244 245;
+  --fg-muted: 161 161 170;
+  --fg-subtle: 113 113 122;
+  color-scheme: dark;
+}
+
+html, body {
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+}
+
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ============================================
+   Component classes (theme-aware)
+   ============================================ */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2;
+  }
+  .btn-secondary {
+    @apply btn border border-[rgb(var(--border))] bg-[rgb(var(--surface))] text-[rgb(var(--fg))] hover:bg-[rgb(var(--surface-2))];
+  }
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+  .btn-ghost {
+    @apply btn text-[rgb(var(--fg-muted))] hover:bg-[rgb(var(--surface-2))] hover:text-[rgb(var(--fg))];
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] px-3.5 py-2.5 text-sm text-[rgb(var(--fg))] placeholder:text-[rgb(var(--fg-subtle))] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-[rgb(var(--fg))];
+  }
+  .card {
+    @apply rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-6 shadow-sm;
+  }
+  .muted {
+    @apply text-[rgb(var(--fg-muted))];
+  }
+  .subtle {
+    @apply text-[rgb(var(--fg-subtle))];
+  }
+}
+
+/* ============================================
+   Login with IrotechLab — button
+   ============================================ */
+.iro-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+.iro-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(79, 70, 229, 0.45); }
+.iro-btn:active { transform: translateY(0); }
+.iro-btn:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; }
+.iro-btn .iro-btn-mark, .iro-btn-mark { color: currentColor; display: inline-block; flex: 0 0 auto; }
+
+.iro-btn-sm { padding: 10px 16px; font-size: 13px; border-radius: 10px; }
+.iro-btn-md { padding: 14px 20px; font-size: 15px; }
+.iro-btn-lg { padding: 16px 24px; font-size: 17px; border-radius: 14px; }
+
+.iro-btn-light {
+  color: #4f46e5;
+  background: #fff;
+  border: 1px solid #e0e7ff;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.08);
+}
+.iro-btn-light:hover { background: #f5f3ff; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); }
+
+.iro-btn-dark { background: #0f172a; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
+.iro-btn-dark:hover { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
+
+.iro-btn-block { width: 100%; }
+
+/* ============================================
+   Theme toggle button
+   ============================================ */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgb(var(--border));
+  background: rgb(var(--surface));
+  color: rgb(var(--fg));
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.theme-toggle:hover { background: rgb(var(--surface-2)); }
+.theme-toggle svg { width: 18px; height: 18px; }
+.theme-toggle .sun { display: none; }
+.theme-toggle .moon { display: block; }
+.dark .theme-toggle .sun { display: block; }
+.dark .theme-toggle .moon { display: none; }
+
+/* ============================================
+   Continue with IrotechLab — OAuth widget
+   Google/GitHub-style button
+   ============================================ */
+.iro-widget {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  user-select: none;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.iro-widget:hover {
+  transform: translateY(-1px);
+}
+.iro-widget:active {
+  transform: translateY(0);
+}
+.iro-widget:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+.iro-widget-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.iro-widget-mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---------- Sizes ---------- */
+.iro-widget-sm { padding: 8px 14px;  font-size: 13px; }
+.iro-widget-md { padding: 11px 18px; font-size: 14px; }
+.iro-widget-lg { padding: 14px 22px; font-size: 16px; }
+
+/* ---------- Shapes ---------- */
+.iro-widget-rounded { border-radius: 10px; }
+.iro-widget-pill    { border-radius: 9999px; }
+.iro-widget-square  { border-radius: 0; }
+
+.iro-widget-icon-only {
+  padding: 10px;
+  aspect-ratio: 1 / 1;
+}
+.iro-widget-icon-only.iro-widget-sm { padding: 8px; }
+.iro-widget-icon-only.iro-widget-lg { padding: 12px; }
+
+.iro-widget-block { width: 100%; }
+
+/* ---------- Variants ---------- */
+
+/* Brand — purple gradient, white text (default) */
+.iro-widget-brand {
+  color: #ffffff;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border: none;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.28);
+}
+.iro-widget-brand:hover {
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.38);
+}
+
+/* Light — white background, subtle border, dark text */
+.iro-widget-light {
+  color: #111827;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.iro-widget-light:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+.iro-widget-light .iro-widget-mark { color: #4f46e5; }
+
+/* Dark — solid dark, white text */
+.iro-widget-dark {
+  color: #ffffff;
+  background: #111827;
+  border: 1px solid #111827;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+.iro-widget-dark:hover {
+  background: #1f2937;
+  border-color: #1f2937;
+}
+
+/* ============================================
+   Continue with IrotechLab — OAuth widget
+   Google/GitHub-style button
+   ============================================ */
+.iro-widget {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  user-select: none;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.iro-widget:hover {
+  transform: translateY(-1px);
+}
+.iro-widget:active {
+  transform: translateY(0);
+}
+.iro-widget:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+.iro-widget-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.iro-widget-mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---------- Sizes ---------- */
+.iro-widget-sm { padding: 8px 14px;  font-size: 13px; }
+.iro-widget-md { padding: 11px 18px; font-size: 14px; }
+.iro-widget-lg { padding: 14px 22px; font-size: 16px; }
+
+/* ---------- Shapes ---------- */
+.iro-widget-rounded { border-radius: 10px; }
+.iro-widget-pill    { border-radius: 9999px; }
+.iro-widget-square  { border-radius: 0; }
+
+.iro-widget-icon-only {
+  padding: 10px;
+  aspect-ratio: 1 / 1;
+}
+.iro-widget-icon-only.iro-widget-sm { padding: 8px; }
+.iro-widget-icon-only.iro-widget-lg { padding: 12px; }
+
+.iro-widget-block { width: 100%; }
+
+/* ---------- Variants ---------- */
+
+/* Brand — purple gradient, white text (default) */
+.iro-widget-brand {
+  color: #ffffff;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border: none;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.28);
+}
+.iro-widget-brand:hover {
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.38);
+}
+
+/* Light — white background, subtle border, dark text */
+.iro-widget-light {
+  color: #111827;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.iro-widget-light:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+.iro-widget-light .iro-widget-mark { color: #4f46e5; }
+
+/* Dark — solid dark, white text */
+.iro-widget-dark {
+  color: #ffffff;
+  background: #111827;
+  border: 1px solid #111827;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+.iro-widget-dark:hover {
+  background: #1f2937;
+  border-color: #1f2937;
+}
