@@ -9,6 +9,13 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
   const ctype = req.headers.get('content-type') ?? '';
 
+  // Malformed request — no form content-type and no session cookie
+  const hasForm = ctype.includes('application/x-www-form-urlencoded') || ctype.includes('multipart/form-data');
+  const hasSession = Boolean(req.cookies.get('iro_session')?.value);
+  if (!hasForm && !hasSession) {
+    return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
+  }
+
   // Case 1: form-encoded (RFC 7009 from client apps)
   if (ctype.includes('application/x-www-form-urlencoded') || ctype.includes('multipart/form-data')) {
     const form = await req.formData();

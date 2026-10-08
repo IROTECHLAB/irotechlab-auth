@@ -5,27 +5,43 @@ import { verifyAccessToken } from '@/lib/jwt';
 
 export const runtime = 'nodejs';
 
+function err(code: string, status = 400) {
+  return NextResponse.json({ error: code }, { status });
+}
+
 export async function POST(req: NextRequest) {
-  const form = await req.formData();
+  const ctype = req.headers.get('content-type') ?? '';
+  if (
+    !ctype.includes('application/x-www-form-urlencoded') &&
+    !ctype.includes('multipart/form-data')
+  ) {
+    return err('invalid_request');
+  }
+
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch {
+    return err('invalid_request');
+  }
+
   const token = form.get('token') as string;
   const tokenTypeHint = form.get('token_type_hint') as string | null;
   const clientId = form.get('client_id') as string;
   const clientSecret = form.get('client_secret') as string | null;
 
   if (!token || !clientId) {
-    return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
+    return err('invalid_request');
   }
 
   const clients = await sql`
     SELECT client_id, client_secret_hash, is_public, is_active
     FROM oauth_clients WHERE client_id = ${clientId}
   `;
-  const client = clients[0] as {
-    client_id: string;
-    client_secret_hash: string | null;
-    is_public: boolean;
-    is_active: boolean;
-  } | undefined;
+  const client = clients[0] as
+    | { client_id: string; client_secret_hash: string | null; is_public: boolean; is_active: boolean }
+    | undefined;
+
   if (!client || !client.is_active) {
     return NextResponse.json({ error: 'invalid_client' }, { status: 401 });
   }
@@ -34,15 +50,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'invalid_client' }, { status: 401 });
     }
     const ok = await verifyPassword(client.client_secret_hash, clientSecret);
-    if (!ok) return NextResponse.json({ error: 'invalid_client' }, { status: 401 });
+    if (!ok) {
+      return NextResponse.json({ error: 'invalid_client' }, { status: 401 });
+    }
   }
 
+  // Try JWT access token first (unless hinted refresh)
   if (tokenTypeHint !== 'refresh_token') {
     try {
       const payload: any = await verifyAccessToken(token);
-      const userRows = await sql`
+      const userRows = (await sql`
         SELECT id, email FROM users WHERE id = ${payload.sub}
-      `;
+      `) as { id: string; email: string }[];
       const u = userRows[0];
       if (u) {
         return NextResponse.json({
@@ -58,13 +77,24 @@ export async function POST(req: NextRequest) {
           username: u.email,
         });
       }
-    } catch {}
+    } catch {
+      // fall through to refresh-token lookup
+    }
   }
 
-  const rts = await sql`
+  // Try refresh token
+  const rts = (await sql`
     SELECT token, user_id, client_id, scope, expires_at, revoked
     FROM refresh_tokens WHERE token = ${token}
-  `;
+  `) as {
+    token: string;
+    user_id: string;
+    client_id: string;
+    scope: string;
+    expires_at: string;
+    revoked: boolean;
+  }[];
+
   const rt = rts[0];
   if (rt && !rt.revoked && new Date(rt.expires_at) > new Date()) {
     return NextResponse.json({
@@ -76,5 +106,6 @@ export async function POST(req: NextRequest) {
       sub: rt.user_id,
     });
   }
+
   return NextResponse.json({ active: false });
 }
