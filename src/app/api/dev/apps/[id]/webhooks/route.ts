@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { sql } from '@/lib/db';
 import { getSession } from '@/lib/session';
 import { generateWebhookSecret, ALL_WEBHOOK_EVENTS } from '@/lib/webhooks';
+import { validateWebhookUrl } from '@/lib/webhook-url';
 
 export const runtime = 'nodejs';
 
@@ -57,6 +58,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         error: 'invalid_input',
         message: parsed.error.issues[0]?.message ?? 'Check your input.',
       },
+      { status: 400 }
+    );
+  }
+
+  // Validate the URL — blocks SSRF vectors
+  const urlCheck = await validateWebhookUrl(parsed.data.url);
+  if (!urlCheck.ok) {
+    return NextResponse.json(
+      { error: 'invalid_url', message: urlCheck.reason ?? 'Invalid webhook URL.' },
       { status: 400 }
     );
   }

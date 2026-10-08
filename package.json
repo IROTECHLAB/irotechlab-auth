@@ -9,7 +9,11 @@
     "lint": "next lint",
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed": "node scripts/seed.mjs",
-    "keys:generate": "node scripts/generate-keys.mjs"
+    "keys:generate": "node scripts/generate-keys.mjs",
+    "test:sql": "bash scripts/check-sql-safety.sh",
+    "test:env": "bash scripts/check-env-coverage.sh",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run typecheck && npm run test:sql && npm run test:env"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.9.0",

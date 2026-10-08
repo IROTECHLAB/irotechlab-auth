@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Build
+        run: npm run build
+        env:
+          # Dummy values — build validates config but doesn't need real secrets.
+          # Next.js only fails if env vars are read at build time and missing;
+          # our routes read them at request time so this passes.
+          NODE_ENV: production
+
+      - name: Upload build artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            .next/
+            npm-debug.log
+          retention-days: 3
+
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit (high + critical)
+        run: npm audit --audit-level=high
+        continue-on-error: false
+
+      - name: SQL safety check
+        run: bash scripts/check-sql-safety.sh
+
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for stale flask SVG references
+        run: |
+          if grep -rn "M 185 100\|365 370\|205 185" src/ public/ *.md 2>/dev/null; then
+            echo "❌ Found stale flask SVG paths"
+            exit 1
+          fi
+          echo "✅ No stale flask references"
+
+      - name: Check for old domain references
+        run: |
+          if grep -rn "irotechlab-auth\.netlify\.app\|auth\.irotechlab\.com" \
+            --include="*.md" --include="*.ts" --include="*.tsx" \
+            --include="*.json" --include="*.toml" . 2>/dev/null \
+            | grep -v node_modules | grep -v .next; then
+            echo "❌ Found stale domain references"
+            exit 1
+          fi
+          echo "✅ No stale domain references"
+
+      - name: Env var coverage
+        run: bash scripts/check-env-coverage.sh
+
+      - name: Check for committed secrets
+        run: |
+          if [ -f .env ] && git ls-files --error-unmatch .env 2>/dev/null; then
+            echo "❌ .env is committed to the repo"
+            exit 1
+          fi
+          for f in jwt_private.pem jwt_public.pem .env.local .env.production; do
+            if git ls-files --error-unmatch "$f" 2>/dev/null; then
+              echo "❌ $f is committed to the repo"
+              exit 1
+            fi
+          done
+          echo "✅ No secrets committed"

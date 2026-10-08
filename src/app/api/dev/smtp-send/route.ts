@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendMail } from '@/lib/mailer';
+import { requireDevSecret } from '@/lib/dev-guard';
 
 export const runtime = 'nodejs';
 
-export async function POST(req: NextRequest) {
+export async function function(req: NextRequest) {
+  const guard = requireDevSecret(req);
+  if (guard) return guard;
   const body = await req.json().catch(() => ({}));
   const to = body.to as string | undefined;
 

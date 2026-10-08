@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loginLimiter, checkLimit } from '@/lib/rate-limit';
+import { requireDevSecret } from '@/lib/dev-guard';
 
 export const runtime = 'nodejs';
 
-export async function GET(req: NextRequest) {
+export async function function(req: NextRequest) {
+  const guard = requireDevSecret(req);
+  if (guard) return guard;
   const ip =
     req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
     req.headers.get('x-real-ip') ??

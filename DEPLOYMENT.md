@@ -146,6 +146,7 @@ Push to GitHub, then on Netlify:
 | `NEXT_PUBLIC_IROCAP_SITEKEY` | Step 6 sitekey (public) |
 | `IROCAP_SECRET` | Step 6 secret (server-only) |
 | `IROCAP_BASE` | Optional — only if self-hosting irocap |
+| `DEV_DIAGNOSTIC_SECRET` | Optional — enables `/api/dev/*` diagnostic routes (openssl rand -hex 32) |
 
 **Note:** `NEXT_PUBLIC_IROCAP_SITEKEY` is baked into the client bundle at build
 time. After changing it, redeploy with cache cleared.

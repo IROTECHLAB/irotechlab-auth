@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { sql } from '@/lib/db';
 import { getSession } from '@/lib/session';
 import { ALL_WEBHOOK_EVENTS } from '@/lib/webhooks';
+import { validateWebhookUrl } from '@/lib/webhook-url';
 
 export const runtime = 'nodejs';
 
@@ -36,6 +37,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: 'invalid_input', message: 'Check your input.' }, { status: 400 });
   }
   const d = parsed.data;
+
+  // If URL is being changed, re-validate it
+  if (d.url) {
+    const urlCheck = await validateWebhookUrl(d.url);
+    if (!urlCheck.ok) {
+      return NextResponse.json(
+        { error: 'invalid_url', message: urlCheck.reason ?? 'Invalid webhook URL.' },
+        { status: 400 }
+      );
+    }
+  }
 
   const events = d.events
     ? Array.from(

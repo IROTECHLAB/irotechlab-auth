@@ -1,0 +1,35 @@
+name: Dependencies
+
+on:
+  schedule:
+    # Every Monday at 09:00 UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  outdated:
+    name: Check Outdated Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Report outdated packages
+        run: npm outdated || true
+
+      - name: Full audit report
+        run: npm audit --json > audit.json || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audit-report
+          path: audit.json
+          retention-days: 30

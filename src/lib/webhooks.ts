@@ -1,5 +1,6 @@
 import { createHmac, randomBytes } from 'crypto';
 import { sql } from './db';
+import { validateWebhookUrl } from './webhook-url';
 
 export type WebhookEvent =
   | 'user.authorized'
@@ -80,6 +81,23 @@ async function deliver(
   event: WebhookEvent,
   data: Record<string, unknown>
 ): Promise<void> {
+  // Re-validate at delivery time to defeat DNS rebinding:
+  // a URL that resolved to a public IP at registration could now
+  // resolve to a private IP.
+  const urlCheck = await validateWebhookUrl(endpoint.url);
+  if (!urlCheck.ok) {
+    console.warn('[webhook] blocked delivery to', endpoint.url, '-', urlCheck.reason);
+    await sql`
+      INSERT INTO webhook_deliveries (
+        endpoint_id, event, payload, status_code, error
+      ) VALUES (
+        ${endpoint.id}, ${event}, ${JSON.stringify(data)}, 0,
+        ${'blocked: ' + (urlCheck.reason ?? 'invalid url')}
+      )
+    `;
+    return;
+  }
+
   const timestamp = Math.floor(Date.now() / 1000);
   const deliveryId = randomBytes(8).toString('hex');
   const body = JSON.stringify({

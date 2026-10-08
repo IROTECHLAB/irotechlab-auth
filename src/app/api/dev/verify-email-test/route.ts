@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { sendVerificationEmail } from '@/lib/verification';
+import { requireDevSecret } from '@/lib/dev-guard';
 
 export const runtime = 'nodejs';
 
-export async function POST(req: NextRequest) {
+export async function function(req: NextRequest) {
+  const guard = requireDevSecret(req);
+  if (guard) return guard;
   const body = await req.json().catch(() => ({}));
   const email = body.email as string | undefined;
   if (!email) return NextResponse.json({ error: 'send {"email":"..."}' }, { status: 400 });
