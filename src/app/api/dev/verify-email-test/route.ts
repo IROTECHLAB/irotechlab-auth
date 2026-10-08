@@ -5,18 +5,29 @@ import { requireDevSecret } from '@/lib/dev-guard';
 
 export const runtime = 'nodejs';
 
-export async function function(req: NextRequest) {
+export async function POST(req: NextRequest) {
   const guard = requireDevSecret(req);
   if (guard) return guard;
+
   const body = await req.json().catch(() => ({}));
   const email = body.email as string | undefined;
-  if (!email) return NextResponse.json({ error: 'send {"email":"..."}' }, { status: 400 });
+  if (!email) {
+    return NextResponse.json(
+      { error: 'invalid_request', message: 'send {"email":"..."}' },
+      { status: 400 }
+    );
+  }
 
   const rows = await sql`
     SELECT id, email, first_name FROM users WHERE email = ${email}
   `;
   const user = rows[0];
-  if (!user) return NextResponse.json({ error: 'user_not_found' }, { status: 404 });
+  if (!user) {
+    return NextResponse.json(
+      { error: 'not_found', message: 'User not found.' },
+      { status: 404 }
+    );
+  }
 
   try {
     await sendVerificationEmail(user.id, user.email, user.first_name);
@@ -26,11 +37,8 @@ export async function function(req: NextRequest) {
       {
         ok: false,
         error: e?.message ?? String(e),
-        stack: e?.stack?.split('\n').slice(0, 5),
         name: e?.name,
         code: e?.code,
-        command: e?.command,
-        responseCode: e?.responseCode,
       },
       { status: 500 }
     );

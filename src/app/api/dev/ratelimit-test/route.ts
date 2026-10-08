@@ -4,9 +4,10 @@ import { requireDevSecret } from '@/lib/dev-guard';
 
 export const runtime = 'nodejs';
 
-export async function function(req: NextRequest) {
+export async function GET(req: NextRequest) {
   const guard = requireDevSecret(req);
   if (guard) return guard;
+
   const ip =
     req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
     req.headers.get('x-real-ip') ??

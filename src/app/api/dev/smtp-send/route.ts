@@ -4,14 +4,18 @@ import { requireDevSecret } from '@/lib/dev-guard';
 
 export const runtime = 'nodejs';
 
-export async function function(req: NextRequest) {
+export async function POST(req: NextRequest) {
   const guard = requireDevSecret(req);
   if (guard) return guard;
+
   const body = await req.json().catch(() => ({}));
   const to = body.to as string | undefined;
 
   if (!to) {
-    return NextResponse.json({ error: 'send {"to":"you@example.com"}' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'invalid_request', message: 'send {"to":"you@example.com"}' },
+      { status: 400 }
+    );
   }
 
   try {
